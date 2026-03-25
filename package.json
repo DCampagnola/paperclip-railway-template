@@ -1,0 +1,17 @@
+{
+  "name": "paperclip-railway-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Railway wrapper for Paperclip setup with bootstrap-ceo invite flow",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "typecheck": "node --check src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}
