@@ -59,7 +59,10 @@ const hermesLocalAdapter: ServerAdapterModule = {
   execute: hermesExecute,
   testEnvironment: hermesTestEnvironment,
   sessionCodec: hermesSessionCodec,
-  models: hermesModels,
+  models: [
+    ...hermesModels,
+    { id: "gpt-5.3-codex", label: "gpt-5.3-codex" },
+  ],
   supportsLocalAgentJwt: true,
   agentConfigurationDoc: hermesAgentConfigurationDoc,
 };
