@@ -29,23 +29,24 @@ Deploy Paperclip to Railway with a setup wrapper on the public port.
 - `CODEX_VERSION` (default: `latest`)
 - `CLAUDE_CODE_VERSION` (default: `latest`)
 
-## Required Railway variables
+## Railway variables (auto-configured)
 
-Set these in Railway Variables:
+You do not need to set these by hand when deploying from this template.
+They are pre-configured in Railway template variables.
 
-- `PAPERCLIP_PUBLIC_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}`
-- `BETTER_AUTH_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}`
-- `BETTER_AUTH_SECRET=<strong-random-secret>`
-- `PAPERCLIP_SECRETS_MASTER_KEY=<64-hex-chars>`
-- `PAPERCLIP_SECRETS_STRICT_MODE=true`
-- `SETUP_ENABLED=true`
-- `SETUP_TOKEN=<any-strong-token>`
-- `SETUP_AUTO_BOOTSTRAP=true`
-- `PAPERCLIP_INTERNAL_PORT=3101`
+Template defaults:
 
-Notes:
-- You can use `PAPERCLIP_AGENT_JWT_SECRET` instead of `BETTER_AUTH_SECRET`, but one of them must exist in authenticated mode.
-- All public/auth URLs must include scheme (`https://`).
+- `SETUP_TOKEN="${{secret(48, \"abcdef0123456789\")}}"`
+- `DATABASE_URL="${{Postgres.DATABASE_URL}}"`
+- `SETUP_ENABLED="true"`
+- `BETTER_AUTH_SECRET="${{secret(64, \"abcdef0123456789\")}}"`
+- `PAPERCLIP_PUBLIC_URL="https://${{RAILWAY_PUBLIC_DOMAIN}}"`
+- `SETUP_AUTO_BOOTSTRAP="true"`
+- `PAPERCLIP_INTERNAL_PORT="3101"`
+- `PAPERCLIP_SECRETS_MASTER_KEY="${{secret(64, \"abcdef0123456789\")}}"`
+- `PAPERCLIP_SECRETS_STRICT_MODE="true"`
+
+If you deploy manually (without template variables), then you must define equivalent values yourself.
 
 ## First-time deployment
 
