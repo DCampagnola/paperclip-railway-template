@@ -1,7 +1,7 @@
 FROM node:22-bookworm AS paperclip-build
 
 ARG PAPERCLIP_REPO=https://github.com/paperclipai/paperclip.git
-ARG PAPERCLIP_REF=v0.3.1
+ARG PAPERCLIP_REF=v2026.325.0
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates curl git \
