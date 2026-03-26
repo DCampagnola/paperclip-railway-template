@@ -1,6 +1,6 @@
 # Paperclip Railway Template
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/<paperclip-template-slug>)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/paperclip-1?referralCode=uTN7AS&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 Deploy Paperclip to Railway with a setup wrapper on the public port.
 
