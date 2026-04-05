@@ -31,6 +31,15 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global --omit=dev @openai/codex@${CODEX_VERSION} opencode-ai tsx
+
+# Claude and Hermes install under $HOME; installing as root leaves binaries in /root, which a
+# non-root user cannot execute via symlinks. Use the image's node user and /paperclip as HOME.
+RUN mkdir -p /paperclip && chown node:node /paperclip
+
+USER node
+WORKDIR /paperclip
+ENV HOME=/paperclip
+
 RUN curl -fsSL https://claude.ai/install.sh | bash -s -- "${CLAUDE_CODE_VERSION}"
 RUN if [ "${HERMES_AGENT_VERSION}" = "latest" ]; then \
       curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup --branch main; \
@@ -38,15 +47,9 @@ RUN if [ "${HERMES_AGENT_VERSION}" = "latest" ]; then \
       curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --skip-setup --branch "${HERMES_AGENT_VERSION}"; \
     fi
 
-ENV PATH="/root/.local/bin:${PATH}"
-
-# Claude installer may place launcher under root's local bin; make it globally discoverable.
+# Same PATH the runtime user will use (no /root/.local — not traversable as non-root).
 RUN set -eux; \
-    if ! command -v claude >/dev/null 2>&1; then \
-      for p in /root/.local/bin/claude /root/.claude/local/claude /root/.claude/bin/claude; do \
-        if [ -x "$p" ]; then ln -sf "$p" /usr/local/bin/claude; break; fi; \
-      done; \
-    fi; \
+    export PATH="/paperclip/.local/bin:${PATH}"; \
     command -v codex; \
     command -v opencode; \
     command -v tsx; \
@@ -62,8 +65,11 @@ RUN set -eux; \
     git --version; \
     gh --version
 
+USER root
+
 ENV NODE_ENV=production \
   HOME=/paperclip \
+  PATH=/paperclip/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin \
   PAPERCLIP_HOME=/paperclip \
   HOST=0.0.0.0 \
   PORT=3100 \
@@ -84,7 +90,10 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
   && test -f /opt/paperclip/server/dist/index.js \
   && test -f /opt/paperclip/cli/dist/index.js \
-  && mkdir -p /paperclip
+  && mkdir -p /paperclip \
+  && chown -R node:node /app /opt/paperclip /paperclip
+
+USER node
 
 EXPOSE 3100
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
