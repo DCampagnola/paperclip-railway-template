@@ -1,0 +1,55 @@
+# Local smoke test for the Paperclip Railway template image.
+# From this directory:
+#   docker compose up --build
+# Then open http://localhost:3100/setup (no SETUP_TOKEN required when unset).
+#
+# First build compiles Paperclip from source and can take several minutes.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: paperclip
+      POSTGRES_PASSWORD: paperclip
+      POSTGRES_DB: paperclip
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paperclip -d paperclip"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  paperclip:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    # Wrapper listens on 0.0.0.0:3100; Paperclip backend stays on 127.0.0.1:3101 inside the container only.
+    ports:
+      - "3100:3100"
+    environment:
+      DATABASE_URL: postgresql://paperclip:paperclip@postgres:5432/paperclip
+      PAPERCLIP_PUBLIC_URL: http://localhost:3100
+      # Dev-only placeholders; use strong random values for anything real.
+      BETTER_AUTH_SECRET: devonly-better-auth-0123456789abcdef0123456789abcdef0123456789abcdef
+      PAPERCLIP_SECRETS_MASTER_KEY: devonly-secrets-master-0123456789abcdef0123456789abcdef0123456789ab
+      PAPERCLIP_SECRETS_STRICT_MODE: "true"
+      SETUP_ENABLED: "true"
+      SETUP_AUTO_BOOTSTRAP: "true"
+      # Leave empty so /setup does not require a token (see README).
+      SETUP_TOKEN: ""
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - paperclip_home:/paperclip
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3100/wrapper/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 180s
+
+volumes:
+  postgres_data:
+  paperclip_home:

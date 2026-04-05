@@ -93,7 +93,8 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
   && mkdir -p /paperclip \
   && chown -R node:node /app /opt/paperclip /paperclip
 
-USER node
+# Entrypoint starts as root so it can chown a root-owned volume at /paperclip, then drops to node.
+USER root
 
 EXPOSE 3100
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/docker-entrypoint.sh"]
