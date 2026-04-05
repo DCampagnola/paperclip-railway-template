@@ -32,13 +32,14 @@ RUN apt-get update \
 
 RUN npm install --global --omit=dev @openai/codex@${CODEX_VERSION} opencode-ai tsx
 
-# Claude and Hermes install under $HOME; installing as root leaves binaries in /root, which a
-# non-root user cannot execute via symlinks. Use the image's node user and /paperclip as HOME.
-RUN mkdir -p /paperclip && chown node:node /paperclip
+# Claude and Hermes install under $HOME. Use /opt/cc-tools (not /paperclip) so a Railway volume
+# mounted at /paperclip does not hide ~/.local/bin/claude or the Hermes venv. Runtime HOME stays
+# /paperclip so Claude/Hermes user config can live on that volume.
+RUN mkdir -p /opt/cc-tools /paperclip && chown node:node /opt/cc-tools /paperclip
 
 USER node
-WORKDIR /paperclip
-ENV HOME=/paperclip
+WORKDIR /opt/cc-tools
+ENV HOME=/opt/cc-tools
 
 RUN curl -fsSL https://claude.ai/install.sh | bash -s -- "${CLAUDE_CODE_VERSION}"
 RUN if [ "${HERMES_AGENT_VERSION}" = "latest" ]; then \
@@ -49,7 +50,7 @@ RUN if [ "${HERMES_AGENT_VERSION}" = "latest" ]; then \
 
 # Same PATH the runtime user will use (no /root/.local — not traversable as non-root).
 RUN set -eux; \
-    export PATH="/paperclip/.local/bin:${PATH}"; \
+    export PATH="/opt/cc-tools/.local/bin:${PATH}"; \
     command -v codex; \
     command -v opencode; \
     command -v tsx; \
@@ -69,7 +70,7 @@ USER root
 
 ENV NODE_ENV=production \
   HOME=/paperclip \
-  PATH=/paperclip/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin \
+  PATH=/opt/cc-tools/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin \
   PAPERCLIP_HOME=/paperclip \
   HOST=0.0.0.0 \
   PORT=3100 \
